@@ -1,6 +1,7 @@
 import {
   addSeconds,
   eachDayOfInterval,
+  eachWeekOfInterval,
   format,
   isAfter,
   isBefore,
@@ -24,51 +25,11 @@ export type TradeInfo = {
   minTime: string;
 };
 
-export const loadTradeInfo = (start: Date, end: Date) => {
-  const dates = eachDayOfInterval({
-    start,
-    end,
-  });
-
-  const tradeInfos: TradeInfo[] = [];
-  for (const date of dates) {
-    if (isSameDay(date, start) || isSameDay(date, end)) {
-      const pricePoints = loadPricePoints(date, start, end);
-      const tradeInfo = findMostProfitableTrade(pricePoints);
-      tradeInfos.push(tradeInfo);
-      continue;
-    }
-
-    const tradeInfo = loadSingleDateTradeInfo(date);
-    tradeInfos.push(tradeInfo);
-  }
-
-  return findMostProfitableTradeMultiDates(tradeInfos);
-};
-
-const loadSingleDateTradeInfo = (date: Date): TradeInfo => {
-  const key = format(date, 'yyyy-MM-dd');
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-  return inMemoryTradeInfoMock[key]();
-};
-
-const loadPricePoints = (date: Date, start: Date, end: Date): PricePoint[] => {
-  const key = format(date, 'yyyy-MM-dd');
-  const pricePoints = inMemoryPricePointsMock[key];
-
-  return pricePoints.filter(
-    (p) =>
-      isAfter(addSeconds(new Date(p.timestamp), 1), start) &&
-      isBefore(new Date(p.timestamp), addSeconds(end, 1)),
-  );
-};
-
 export const toTradeInfoArray = (pricePoints: PricePoint[][]) => {
   return pricePoints.map(findMostProfitableTrade);
 };
 
-export const findMostProfitableTradeMultiDates = (info: TradeInfo[]) => {
+export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
   const arr: PricePoint[] = [];
 
   for (const element of info) {
@@ -100,12 +61,7 @@ export const findMostProfitableTradeMultiDates = (info: TradeInfo[]) => {
 
 // TODO: fix earliest and shortest requirement
 export const findMostProfitableTrade = (prices: PricePoint[]): TradeInfo => {
-  // TODO: does it make sense to buy and sell within a second
-  // I think yes!
-  // if (prices.length < 2) {
-  //   throw Error(`Not enough data! Prices length ${prices.length}`);
-  // }
-
+  // TODO: handle when there are no price points
   let minPrice = prices[0].price;
   let maxPrice = prices[0].price;
   let maxTime = prices[0].timestamp;

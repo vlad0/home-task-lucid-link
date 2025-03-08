@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@date-fns/utc": "^2.1.0",
     "@nestjs/cache-manager": "^3.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
@@ -27,6 +28,7 @@
     "@nestjs/serve-static": "^5.0.3",
     "cache-manager": "^6.4.1",
     "date-fns": "^4.1.0",
+    "jest-mock-extended": "^4.0.0-beta1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

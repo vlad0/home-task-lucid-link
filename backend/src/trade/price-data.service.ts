@@ -1,13 +1,16 @@
 import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as readline from 'readline';
-import { findMostProfitableTrade, PricePoint, TradeInfo } from '../utils';
+import { findMostProfitableTrade, TradeInfo } from '../utils';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { PriceDataRepository } from './price-data.repository';
 
 @Injectable()
 export class PriceDataService implements OnApplicationBootstrap {
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) { }
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly priceDataRepository: PriceDataRepository,
+  ) { }
 
   private readonly folderPath = './data';
 
@@ -58,8 +61,8 @@ export class PriceDataService implements OnApplicationBootstrap {
     }
   }
 
-  public async fetch(key: string) {
-    return this.loadFile(`${key}.json`);
+  public fetch(key: string) {
+    return this.priceDataRepository.fetch(key);
   }
 
   public async getDailyCandle(date: string): Promise<TradeInfo> {
@@ -70,45 +73,12 @@ export class PriceDataService implements OnApplicationBootstrap {
       return cache;
     }
 
-    const jsonData = await this.fetch(date);
+    const jsonData = await this.priceDataRepository.fetch(date);
     const dailyCandle = findMostProfitableTrade(jsonData);
 
     console.log(`Updating cache for ${date}`);
     await this.cacheManager.set(date, dailyCandle);
 
     return dailyCandle;
-  }
-
-  private async loadFile(
-    file: string,
-    folderPath?: string,
-  ): Promise<PricePoint[]> {
-    const filePath = path.join(folderPath ?? this.folderPath, file);
-
-    if (fs.statSync(filePath).isFile()) {
-      const start = Date.now();
-
-      console.log(`Processing file: ${filePath}`);
-
-      const fileStream = fs.createReadStream(filePath);
-      const rl = readline.createInterface({ input: fileStream });
-
-      let jsonString = '';
-
-      for await (const line of rl) {
-        jsonString += line.trim();
-      }
-
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const jsonData: PricePoint[] = JSON.parse(jsonString);
-        console.log('File parsing duration: ', Date.now() - start);
-        return jsonData;
-      } catch (err) {
-        console.error(`Error parsing JSON in ${filePath}:`, err);
-      }
-    }
-
-    return [];
   }
 }

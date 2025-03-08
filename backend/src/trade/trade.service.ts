@@ -14,27 +14,16 @@ import {
 } from '../utils';
 import { Injectable } from '@nestjs/common';
 import { PriceDataService } from './price-data.service';
+import { UTCDate } from '@date-fns/utc';
 
 @Injectable()
 export class TradeService {
   constructor(private readonly priceDataService: PriceDataService) { }
 
-  public async loadPricePoints(
-    date: Date,
-    start: Date,
-    end: Date,
-  ): Promise<PricePoint[]> {
-    const key = format(date, 'yyyy-MM-dd');
-    const pricePoints = await this.priceDataService.fetch(key);
+  public async findBestTrade(startDate: Date, endDate: Date) {
+    const start = new UTCDate(startDate);
+    const end = new UTCDate(endDate);
 
-    return pricePoints.filter((p) => {
-      const isAfterA = isAfter(addSeconds(new Date(p.timestamp), 1), start);
-      const isBeforeA = isBefore(new Date(p.timestamp), addSeconds(end, 1));
-      return isAfterA && isBeforeA;
-    });
-  }
-
-  public async findBestTrade(start: Date, end: Date) {
     const dates = eachDayOfInterval({
       start,
       end,
@@ -56,5 +45,23 @@ export class TradeService {
     }
 
     return findMostProfitableTradeByCandles(tradeInfos);
+  }
+
+  private async loadPricePoints(
+    date: Date,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<PricePoint[]> {
+    const start = new UTCDate(startDate);
+    const end = new UTCDate(endDate);
+
+    const key = format(date, 'yyyy-MM-dd');
+    const pricePoints = await this.priceDataService.fetch(key);
+
+    return pricePoints.filter((p) => {
+      const isAfterA = isAfter(addSeconds(new UTCDate(p.timestamp), 1), start);
+      const isBeforeA = isBefore(new UTCDate(p.timestamp), addSeconds(end, 1));
+      return isAfterA && isBeforeA;
+    });
   }
 }
