@@ -4,6 +4,12 @@ import { PriceDataRepository } from '../price-data.repository';
 import { mock, mockDeep } from 'jest-mock-extended';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
+  mockJan01,
+  mockJan02,
+  mockJan03,
+  mockJan04,
+  mockJan05,
+  mockJan06,
   priceData,
   priceDataDoubleVUptrend,
   priceDataMform,
@@ -12,6 +18,8 @@ import {
   priceDataReverseV,
   priceDataSform,
   priceDataSformMostRecent,
+  priceDataSformMostRecentShortest,
+  priceDataSformMostRecentShortestVol2,
   priceDataUptrend,
   priceDataVForm,
 } from './mock';
@@ -19,8 +27,13 @@ import { TradeService } from '../trade.service';
 
 describe('Trade Service', () => {
   let tradeService: TradeService;
+  let getDailyCandleSpy: jest.SpyInstance;
   const repositoryMock = mock<PriceDataRepository>();
   const cacheMock = mockDeep<Cache>();
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -39,10 +52,12 @@ describe('Trade Service', () => {
       .compile();
 
     tradeService = module.get<TradeService>(TradeService);
+    const priceDataService = module.get<PriceDataService>(PriceDataService);
+    getDailyCandleSpy = jest.spyOn(priceDataService, 'getDailyCandle');
   });
 
-  describe('Trade forms within a single day', () => {
-    const subject = (start, end) =>
+  describe('Calculate best trade within a single day', () => {
+    const subject = (start: string, end: string) =>
       tradeService.findBestTrade(new Date(start), new Date(end));
 
     it('should calculate most profitable trade - basic scenario', async () => {
@@ -84,11 +99,11 @@ describe('Trade Service', () => {
     it('should calculate most profitable trade and MOST RECENT for S form', async () => {
       repositoryMock.fetch.mockResolvedValueOnce(priceDataSformMostRecent);
 
-      const result = await subject('2025-03-01T00:00Z', '2025-03-01T05:00Z');
+      const result = await subject('2025-03-01T00:00Z', '2025-03-01T23:00Z');
 
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
-        buyPrice: 19000,
+        buyPrice: 10000,
         sellTime: '2025-03-01T01:00:00Z',
         sellPrice: 13000,
         maxProfit: 3000,
@@ -99,12 +114,51 @@ describe('Trade Service', () => {
       });
     });
 
+    it('should calculate most profitable trade and earliest and shortest for S form', async () => {
+      repositoryMock.fetch.mockResolvedValueOnce(
+        priceDataSformMostRecentShortest,
+      );
+
+      const result = await subject('2025-03-01T00:00Z', '2025-03-01T23:00Z');
+
+      expect(result).toEqual({
+        buyTime: '2025-03-01T08:00:00Z',
+        buyPrice: 9000,
+        sellTime: '2025-03-01T09:00:00Z',
+        sellPrice: 12000,
+        maxProfit: 3000,
+        maxPrice: 12000,
+        maxTime: '2025-03-01T09:00:00Z',
+        minPrice: 9000,
+        minTime: '2025-03-01T08:00:00Z',
+      });
+    });
+
+    it('should calculate most profitable trade and earliest and shortest for S form vol 2', async () => {
+      repositoryMock.fetch.mockResolvedValueOnce(
+        priceDataSformMostRecentShortestVol2,
+      );
+
+      const result = await subject('2025-03-01T00:00Z', '2025-03-01T23:00Z');
+
+      expect(result).toEqual({
+        buyTime: '2025-03-01T05:00:00Z',
+        buyPrice: 9000,
+        sellTime: '2025-03-01T06:00:00Z',
+        sellPrice: 12000,
+        maxProfit: 3000,
+        maxPrice: 12000,
+        maxTime: '2025-03-01T09:00:00Z',
+        minPrice: 9000,
+        minTime: '2025-03-01T08:00:00Z',
+      });
+    });
+
     it('should calculate most profitable trade for Uptrend', async () => {
       repositoryMock.fetch.mockResolvedValueOnce(priceDataUptrend);
 
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T05:00Z');
 
-      console.log('result: ', result);
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
         buyPrice: 5000,
@@ -123,7 +177,6 @@ describe('Trade Service', () => {
 
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T05:00Z');
 
-      console.log('result: ', result);
       expect(result).toEqual({
         buyTime: '2025-03-01T03:00:00Z',
         buyPrice: 8000,
@@ -142,7 +195,6 @@ describe('Trade Service', () => {
 
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T06:00Z');
 
-      console.log('result: ', result);
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
         buyPrice: 8000,
@@ -161,7 +213,6 @@ describe('Trade Service', () => {
 
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T10:00Z');
 
-      console.log('result: ', result);
       expect(result).toEqual({
         buyTime: '2025-03-01T03:00:00Z',
         buyPrice: 8000,
@@ -180,11 +231,11 @@ describe('Trade Service', () => {
 
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T10:00Z');
 
-      console.log('result: ', result);
+      console.log('Result: ', result);
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
         buyPrice: 5000,
-        sellTime: '2025-03-01T09:00:00Z',
+        sellTime: '2025-03-01T04:00:00Z',
         sellPrice: 9000,
         maxProfit: 4000,
         maxPrice: 9000,
@@ -194,6 +245,7 @@ describe('Trade Service', () => {
       });
     });
 
+    // TODO: make decision for flat line
     it('should provide the earliest trade for flat line', async () => {
       repositoryMock.fetch.mockResolvedValueOnce(
         priceDataNoRecommendationFlatLine,
@@ -221,7 +273,6 @@ describe('Trade Service', () => {
 
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T23:00Z');
 
-      console.log('Result: ', result);
       expect(result).toEqual({
         buyTime: '',
         buyPrice: 0,
@@ -232,6 +283,94 @@ describe('Trade Service', () => {
         maxTime: '2025-03-01T00:00:00Z',
         minPrice: 5000,
         minTime: '2025-03-01T05:00:00Z',
+      });
+    });
+  });
+
+  describe('Calculate best trade for multiple days', () => {
+    const subject = (start: string, end: string) =>
+      tradeService.findBestTrade(new Date(start), new Date(end));
+
+    beforeEach(() => {
+      repositoryMock.fetch
+        .calledWith('2025-01-01')
+        .mockResolvedValueOnce(mockJan01);
+      repositoryMock.fetch
+        .calledWith('2025-01-02')
+        .mockResolvedValueOnce(mockJan02);
+      repositoryMock.fetch
+        .calledWith('2025-01-03')
+        .mockResolvedValueOnce(mockJan03);
+      repositoryMock.fetch
+        .calledWith('2025-01-04')
+        .mockResolvedValueOnce(mockJan04);
+      repositoryMock.fetch
+        .calledWith('2025-01-05')
+        .mockResolvedValueOnce(mockJan05);
+      repositoryMock.fetch
+        .calledWith('2025-01-06')
+        .mockResolvedValueOnce(mockJan06);
+    });
+
+    it('should calculate most profitable trade - basic scenario', async () => {
+      const result = await subject('2025-01-01T00:00Z', '2025-01-04T05:00Z');
+
+      expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-02');
+      expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-03');
+
+      expect(result).toEqual({
+        buyTime: '2025-01-01T03:00:00Z',
+        buyPrice: 7000,
+        sellTime: '2025-01-02T00:00:00Z',
+        sellPrice: 20000,
+        maxProfit: 13000,
+        maxPrice: 20000,
+        maxTime: '2025-01-02T00:00:00Z',
+        minPrice: 7000,
+        minTime: '2025-01-01T03:00:00Z',
+      });
+    });
+
+    it('should calculate most profitable trade - basic scenario', async () => {
+      const result = await subject('2025-01-01T00:00Z', '2025-01-04T05:00Z');
+
+      expect(getDailyCandleSpy).toHaveBeenCalledTimes(2);
+      expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-02');
+      expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-03');
+
+      console.log('Result: ', result);
+
+      expect(result).toEqual({
+        buyTime: '2025-01-01T03:00:00Z',
+        buyPrice: 7000,
+        sellTime: '2025-01-02T00:00:00Z',
+        sellPrice: 20000,
+        maxProfit: 13000,
+        maxPrice: 20000,
+        maxTime: '2025-01-02T00:00:00Z',
+        minPrice: 7000,
+        minTime: '2025-01-01T03:00:00Z',
+      });
+    });
+
+    it('should calculate most profitable trade - W form', async () => {
+      const result = await subject('2025-01-02T04:00Z', '2025-01-04T05:00Z');
+
+      expect(getDailyCandleSpy).toHaveBeenCalledTimes(1);
+      expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-03');
+
+      console.log('Result: ', result);
+
+      expect(result).toEqual({
+        buyTime: '2025-01-03T02:00:00Z',
+        buyPrice: 9000,
+        sellTime: '2025-01-04T04:00:00Z',
+        sellPrice: 19500,
+        maxProfit: 10500,
+        maxPrice: 19500,
+        maxTime: '2025-01-04T04:00:00Z',
+        minPrice: 9000,
+        minTime: '2025-01-04T02:00:00Z',
       });
     });
   });

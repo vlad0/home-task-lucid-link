@@ -1,13 +1,6 @@
-import {
-  addSeconds,
-  eachDayOfInterval,
-  eachWeekOfInterval,
-  format,
-  isAfter,
-  isBefore,
-  isSameDay,
-} from 'date-fns';
-import { inMemoryPricePointsMock, inMemoryTradeInfoMock } from './mock';
+import { differenceInMilliseconds } from 'date-fns';
+
+import { UTCDate } from '@date-fns/utc';
 
 export type PricePoint = {
   timestamp: string;
@@ -71,17 +64,29 @@ export const findMostProfitableTrade = (prices: PricePoint[]): TradeInfo => {
   let buyPrice: number = 0;
   let sellTime: string = '';
   let sellPrice: number = 0;
+  let holdingDuration: number = 0;
 
   for (let i = 1; i < prices.length; i++) {
     const { timestamp, price } = prices[i];
 
     const potentialProfit = price - minPrice;
     if (potentialProfit >= maxProfit) {
-      maxProfit = potentialProfit;
-      buyTime = minTime;
-      sellTime = timestamp;
-      sellPrice = price;
-      buyPrice = minPrice;
+      const potentialHoldingDuration: number = differenceInMilliseconds(
+        new UTCDate(timestamp),
+        new UTCDate(minTime),
+      );
+
+      if (
+        potentialProfit !== maxProfit ||
+        potentialHoldingDuration < holdingDuration
+      ) {
+        maxProfit = potentialProfit;
+        buyTime = minTime;
+        sellTime = timestamp;
+        sellPrice = price;
+        buyPrice = minPrice;
+        holdingDuration = potentialHoldingDuration;
+      }
     }
 
     if (price <= minPrice) {
