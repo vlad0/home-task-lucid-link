@@ -44,7 +44,13 @@ export class TradeService {
       tradeInfos.push(tradeInfo);
     }
 
-    return findMostProfitableTradeByCandles(tradeInfos);
+    const result = findMostProfitableTradeByCandles(tradeInfos);
+
+    if (result.maxProfit === 0) {
+      return { status: 'NO_PROFITABLE_TRADE' };
+    }
+
+    return result;
   }
 
   private async loadPricePoints(

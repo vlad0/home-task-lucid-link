@@ -231,7 +231,6 @@ describe('Trade Service', () => {
 
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T10:00Z');
 
-      console.log('Result: ', result);
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
         buyPrice: 5000,
@@ -245,7 +244,6 @@ describe('Trade Service', () => {
       });
     });
 
-    // TODO: make decision for flat line
     it('should provide the earliest trade for flat line', async () => {
       repositoryMock.fetch.mockResolvedValueOnce(
         priceDataNoRecommendationFlatLine,
@@ -254,15 +252,7 @@ describe('Trade Service', () => {
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T23:00Z');
 
       expect(result).toEqual({
-        buyTime: '2025-03-01T00:00:00Z',
-        buyPrice: 9000,
-        sellTime: '2025-03-01T00:00:00Z',
-        sellPrice: 9000,
-        maxProfit: 0,
-        maxPrice: 9000,
-        maxTime: '2025-03-01T02:00:00Z',
-        minPrice: 9000,
-        minTime: '2025-03-01T02:00:00Z',
+        status: 'NO_PROFITABLE_TRADE',
       });
     });
 
@@ -274,15 +264,7 @@ describe('Trade Service', () => {
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T23:00Z');
 
       expect(result).toEqual({
-        buyTime: '',
-        buyPrice: 0,
-        sellTime: '',
-        sellPrice: 0,
-        maxProfit: 0,
-        maxPrice: 10000,
-        maxTime: '2025-03-01T00:00:00Z',
-        minPrice: 5000,
-        minTime: '2025-03-01T05:00:00Z',
+        status: 'NO_PROFITABLE_TRADE',
       });
     });
   });
@@ -338,8 +320,6 @@ describe('Trade Service', () => {
       expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-02');
       expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-03');
 
-      console.log('Result: ', result);
-
       expect(result).toEqual({
         buyTime: '2025-01-01T03:00:00Z',
         buyPrice: 7000,
@@ -358,8 +338,6 @@ describe('Trade Service', () => {
 
       expect(getDailyCandleSpy).toHaveBeenCalledTimes(1);
       expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-03');
-
-      console.log('Result: ', result);
 
       expect(result).toEqual({
         buyTime: '2025-01-03T02:00:00Z',

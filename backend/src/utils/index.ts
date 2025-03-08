@@ -52,7 +52,6 @@ export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
   return result;
 };
 
-// TODO: fix earliest and shortest requirement
 export const findMostProfitableTrade = (prices: PricePoint[]): TradeInfo => {
   // TODO: handle when there are no price points
   let minPrice = prices[0].price;
