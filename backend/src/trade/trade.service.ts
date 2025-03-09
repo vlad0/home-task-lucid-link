@@ -12,7 +12,7 @@ import {
   PricePoint,
   TradeInfo,
 } from '../utils';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PriceDataService } from './price-data.service';
 import { UTCDate } from '@date-fns/utc';
 
@@ -23,6 +23,12 @@ export class TradeService {
   public async findBestTrade(startDate: Date, endDate: Date) {
     const start = new UTCDate(startDate);
     const end = new UTCDate(endDate);
+
+    if (end < start) {
+      throw new BadRequestException(
+        `End date: ${end.toISOString()} cannot be before ${start.toISOString()} date`,
+      );
+    }
 
     const dates = eachDayOfInterval({
       start,
