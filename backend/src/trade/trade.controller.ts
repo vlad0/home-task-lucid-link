@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   ParseDatePipe,
@@ -7,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { TradeService } from './trade.service';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+import { PraseUtcDatePipe } from 'src/common/prase-utc-date.pipe';
 
 @Controller('trade')
 @UseInterceptors(CacheInterceptor)
@@ -15,8 +17,8 @@ export class TradeController {
   @Get()
   @CacheTTL(10_000)
   getTradeInfo(
-    @Query('start', new ParseDatePipe()) start: Date,
-    @Query('end', new ParseDatePipe()) end: Date,
+    @Query('start', new PraseUtcDatePipe()) start: Date,
+    @Query('end', new PraseUtcDatePipe()) end: Date,
   ) {
     return this.tradeService.findBestTrade(start, end);
   }
