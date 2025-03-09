@@ -3,10 +3,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
 import { PricePoint } from '../utils';
+import { GenericLogger } from 'src/common/logger.service';
 
 @Injectable()
 export class PriceDataRepository {
   private readonly folderPath = './data';
+
+  constructor(private readonly logger: GenericLogger) { }
 
   public async fetch(key: string) {
     return this.loadFile(`${key}.json`);
@@ -21,7 +24,7 @@ export class PriceDataRepository {
     if (fs.statSync(filePath).isFile()) {
       const start = Date.now();
 
-      console.log(`Processing file: ${filePath}`);
+      this.logger.log(`Processing file: ${filePath}`);
 
       const fileStream = fs.createReadStream(filePath);
       const rl = readline.createInterface({ input: fileStream });
@@ -35,10 +38,12 @@ export class PriceDataRepository {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const jsonData: PricePoint[] = JSON.parse(jsonString);
-        console.log('File parsing duration: ', Date.now() - start);
+        this.logger.log('File parsing duration: ', {
+          fileParsing: Date.now() - start,
+        });
         return jsonData;
       } catch (err) {
-        console.error(`Error parsing JSON in ${filePath}:`, err);
+        this.logger.error(`Error parsing JSON in ${filePath}:`, { err });
       }
     }
 

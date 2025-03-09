@@ -19,6 +19,7 @@ export class GenericInterceptor implements NestInterceptor {
     const requestId = v4();
     request.headers['x-request-id'] = requestId;
 
+    const start = performance.now();
     this.logger.log('Request parms', {
       path: request.url,
       method: request.method,
@@ -29,8 +30,12 @@ export class GenericInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data: unknown) => {
-        // Log the response data (customize what you want to log)
-        this.logger.log('Response Data:', { data, requestId });
+        const duration = performance.now() - start;
+        this.logger.log('Response Data:', {
+          data,
+          requestId,
+          duration,
+        });
 
         return data;
       }),
