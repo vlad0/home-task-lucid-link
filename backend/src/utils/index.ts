@@ -51,13 +51,11 @@ export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
       new UTCDate(result.buyTime),
     );
     const maxProfit = new BigNumber(element.maxProfit);
-    const resultMaxProfit = new BigNumber(result?.maxProfit ?? 0);
+    const resultMaxProfit = new BigNumber(result.maxProfit ?? 0);
 
-    if (maxProfit.isGreaterThan(resultMaxProfit)) {
-      result = element;
-    } else if (
-      maxProfit.isEqualTo(resultMaxProfit) &&
-      elementHolding < resultHolding
+    if (
+      maxProfit.isGreaterThan(resultMaxProfit) ||
+      (maxProfit.isEqualTo(resultMaxProfit) && elementHolding < resultHolding)
     ) {
       result = element;
     }
