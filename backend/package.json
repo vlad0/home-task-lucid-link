@@ -29,6 +29,7 @@
     "cache-manager": "^6.4.1",
     "date-fns": "^4.1.0",
     "jest-mock-extended": "^4.0.0-beta1",
+    "keyv": "^5.3.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "uuid": "^11.1.0"

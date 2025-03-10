@@ -2,7 +2,7 @@ import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import { AsyncLocalStorage } from 'async_hooks';
 import { v4 } from 'uuid';
 import { Request } from 'express';
-import { ASYNC_LOCAL_STORAGE, AsyncStorage } from 'src/common/constants';
+import { ASYNC_LOCAL_STORAGE, AsyncStorage } from '../common/constants';
 
 @Injectable()
 export class RequestStorageMiddleware implements NestMiddleware {

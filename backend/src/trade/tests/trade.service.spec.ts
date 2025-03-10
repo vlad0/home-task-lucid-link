@@ -24,6 +24,10 @@ import {
   priceDataVForm,
 } from './mock';
 import { TradeService } from '../trade.service';
+import { NO_PROFITABLE_TRADE } from '../constants';
+import { HttpLogger } from '../../common/http-logger.service';
+import { CommonModule } from '../../common/common.module';
+import { REQUEST } from '@nestjs/core';
 
 describe('Trade Service', () => {
   let tradeService: TradeService;
@@ -37,6 +41,7 @@ describe('Trade Service', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [CommonModule],
       providers: [
         TradeService,
         PriceDataService,
@@ -45,10 +50,17 @@ describe('Trade Service', () => {
           provide: CACHE_MANAGER,
           useValue: cacheMock,
         },
+        {
+          provide: REQUEST,
+          useValue: { id: 'mock-request' },
+        },
+        HttpLogger,
       ],
     })
       .overrideProvider(PriceDataRepository)
       .useValue(repositoryMock)
+      .overrideProvider(HttpLogger)
+      .useValue(mockDeep<HttpLogger>())
       .compile();
 
     tradeService = module.get<TradeService>(TradeService);
@@ -252,7 +264,7 @@ describe('Trade Service', () => {
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T23:00Z');
 
       expect(result).toEqual({
-        status: 'NO_PROFITABLE_TRADE',
+        status: NO_PROFITABLE_TRADE,
       });
     });
 
@@ -264,8 +276,16 @@ describe('Trade Service', () => {
       const result = await subject('2025-03-01T00:00Z', '2025-03-01T23:00Z');
 
       expect(result).toEqual({
-        status: 'NO_PROFITABLE_TRADE',
+        status: NO_PROFITABLE_TRADE,
       });
+    });
+
+    it('should throw when no data exists', async () => {
+      repositoryMock.fetch.mockRejectedValueOnce('some error');
+
+      await expect(
+        subject('2025-03-11T00:00Z', '2025-03-11T23:00Z'),
+      ).rejects.toThrow('No data exists for 2025-03-11');
     });
   });
 
@@ -292,25 +312,6 @@ describe('Trade Service', () => {
       repositoryMock.fetch
         .calledWith('2025-01-06')
         .mockResolvedValueOnce(mockJan06);
-    });
-
-    it('should calculate most profitable trade - basic scenario', async () => {
-      const result = await subject('2025-01-01T00:00Z', '2025-01-04T05:00Z');
-
-      expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-02');
-      expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-03');
-
-      expect(result).toEqual({
-        buyTime: '2025-01-01T03:00:00Z',
-        buyPrice: 7000,
-        sellTime: '2025-01-02T00:00:00Z',
-        sellPrice: 20000,
-        maxProfit: 13000,
-        maxPrice: 20000,
-        maxTime: '2025-01-02T00:00:00Z',
-        minPrice: 7000,
-        minTime: '2025-01-01T03:00:00Z',
-      });
     });
 
     it('should calculate most profitable trade - basic scenario', async () => {
