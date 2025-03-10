@@ -26,19 +26,19 @@ export class GenericExceptionFilter implements ExceptionFilter {
       message = exception.message || message;
     }
 
-    this.logger.error('Something went wrong:', {
-      exception,
-      path: request.url,
-
-      requestId: request.headers['x-request-id'],
-    });
-
     let payload = {};
     if (typeof message === 'string') {
       payload['message'] = message;
     } else {
       payload = message;
     }
+
+    this.logger.error('Ooops something went wrong:', {
+      exception,
+      path: request.url,
+      requestId: request.headers['x-request-id'],
+      payload,
+    });
 
     response.status(status).json({
       statusCode: status,

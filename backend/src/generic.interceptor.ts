@@ -16,8 +16,7 @@ export class GenericInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
 
-    const requestId = v4();
-    request.headers['x-request-id'] = requestId;
+    const requestId = request.headers['x-request-id'];
 
     const start = performance.now();
     this.logger.log('Request parms', {
@@ -30,7 +29,8 @@ export class GenericInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data: unknown) => {
-        const duration = performance.now() - start;
+        const duration = Math.floor(performance.now() - start);
+
         this.logger.log('Response Data:', {
           data,
           requestId,

@@ -1,17 +1,18 @@
-import {
-  Injectable,
-  LoggerService,
-  Scope,
-  Logger as NestLogger,
-  Inject,
-} from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
+import { Inject, LoggerService, Logger as NestLogger } from '@nestjs/common';
+import { AsyncLocalStorage } from 'async_hooks';
+import { ASYNC_LOCAL_STORAGE, AsyncStorage } from './constants';
 
-@Injectable({ scope: Scope.REQUEST })
-export class GenericLogger implements LoggerService {
-  private readonly logger = new NestLogger();
+export class HttpLogger implements LoggerService {
+  private logger: NestLogger;
 
-  constructor(@Inject(REQUEST) private request: Request) { }
+  constructor(
+    @Inject(ASYNC_LOCAL_STORAGE)
+    private readonly asyncLocalStorage: AsyncLocalStorage<AsyncStorage>,
+  ) { }
+
+  setContext(context: string) {
+    this.logger = new NestLogger(context);
+  }
 
   log(message: string, params?: Record<string, unknown>) {
     this.produce('log', message, params);
@@ -34,14 +35,15 @@ export class GenericLogger implements LoggerService {
   }
 
   private produce(
-    // TODO: fix types
     type: 'log' | 'error' | 'warn' | 'debug' | 'verbose',
     message: string,
     params?: Record<string, unknown>,
   ) {
+    const requestId = this.asyncLocalStorage.getStore()?.requestId;
+
     this.logger[type](message, {
       ...params,
-      requestId: this.request.headers['x-request-id'] as string,
+      requestId,
     });
   }
 }

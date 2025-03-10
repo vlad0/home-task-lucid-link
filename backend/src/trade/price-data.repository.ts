@@ -3,13 +3,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
 import { PricePoint } from '../utils';
-import { GenericLogger } from 'src/common/logger.service';
+import { HttpLogger } from '../common/http-logger.service';
 
 @Injectable()
 export class PriceDataRepository {
   private readonly folderPath = './data';
 
-  constructor(private readonly logger: GenericLogger) { }
+  constructor(private readonly logger: HttpLogger) { }
 
   public async fetch(key: string) {
     return this.loadFile(`${key}.json`);
@@ -21,8 +21,13 @@ export class PriceDataRepository {
   ): Promise<PricePoint[]> {
     const filePath = path.join(folderPath ?? this.folderPath, file);
 
+    if (!fs.existsSync(filePath)) {
+      const fileName = path.basename(file, path.extname(file));
+      throw new Error(`No data exists for ${fileName}`);
+    }
+
     if (fs.statSync(filePath).isFile()) {
-      const start = Date.now();
+      const start = performance.now();
 
       this.logger.log(`Processing file: ${filePath}`);
 
@@ -39,7 +44,7 @@ export class PriceDataRepository {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const jsonData: PricePoint[] = JSON.parse(jsonString);
         this.logger.log('File parsing duration: ', {
-          fileParsing: Date.now() - start,
+          duration: Math.floor(performance.now() - start),
         });
         return jsonData;
       } catch (err) {
