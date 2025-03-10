@@ -4,9 +4,9 @@ import {
   Injectable,
   Logger,
   NestInterceptor,
+  RequestTimeoutException,
 } from '@nestjs/common';
-import { v4 } from 'uuid';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, timeout, TimeoutError } from 'rxjs';
 import { Request } from 'express';
 
 @Injectable()
@@ -28,6 +28,7 @@ export class GenericInterceptor implements NestInterceptor {
     });
 
     return next.handle().pipe(
+      timeout(5000),
       map((data: unknown) => {
         const duration = Math.floor(performance.now() - start);
 
@@ -38,6 +39,12 @@ export class GenericInterceptor implements NestInterceptor {
         });
 
         return data;
+      }),
+      catchError((err) => {
+        if (err instanceof TimeoutError) {
+          throw new RequestTimeoutException('Request took tooo long');
+        }
+        throw err;
       }),
     );
   }
