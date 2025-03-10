@@ -42,20 +42,24 @@ export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
   let result: TradeInfo = consolidated;
 
   for (const element of info) {
-    const elementHolding = differenceInMilliseconds(
+    const potentialHoldingDuration = differenceInMilliseconds(
       new UTCDate(element.sellTime),
       new UTCDate(element.buyTime),
     );
-    const resultHolding = differenceInMilliseconds(
+    const holdingDuration = differenceInMilliseconds(
       new UTCDate(result.sellTime),
       new UTCDate(result.buyTime),
     );
-    const maxProfit = new BigNumber(element.maxProfit);
-    const resultMaxProfit = new BigNumber(result.maxProfit ?? 0);
+    const potentialProfit = new BigNumber(element.maxProfit);
+    const maxProfit = new BigNumber(result.maxProfit ?? 0);
 
     if (
-      maxProfit.isGreaterThan(resultMaxProfit) ||
-      (maxProfit.isEqualTo(resultMaxProfit) && elementHolding < resultHolding)
+      shouldUpdateTrade(
+        potentialProfit,
+        maxProfit,
+        potentialHoldingDuration,
+        holdingDuration,
+      )
     ) {
       result = element;
     }
@@ -63,6 +67,16 @@ export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
 
   return result;
 };
+
+const shouldUpdateTrade = (
+  potentialProfit: BigNumber,
+  maxProfit: BigNumber,
+  potentialHoldingDuration: number,
+  holdingDuration: number,
+) =>
+  potentialProfit.isGreaterThan(maxProfit) ||
+  (potentialProfit.isEqualTo(maxProfit) &&
+    potentialHoldingDuration < holdingDuration);
 
 export const findMostProfitableTrade = (prices: PricePoint[]): TradeInfo => {
   // TODO: handle trade info
@@ -83,23 +97,25 @@ export const findMostProfitableTrade = (prices: PricePoint[]): TradeInfo => {
     const safePrice = new BigNumber(price);
 
     const potentialProfit = safePrice.minus(minPrice);
-    if (potentialProfit.isGreaterThanOrEqualTo(maxProfit)) {
-      const potentialHoldingDuration: number = differenceInMilliseconds(
-        new UTCDate(timestamp),
-        new UTCDate(minTime),
-      );
+    const potentialHoldingDuration: number = differenceInMilliseconds(
+      new UTCDate(timestamp),
+      new UTCDate(minTime),
+    );
 
-      if (
-        !potentialProfit.isEqualTo(maxProfit) ||
-        potentialHoldingDuration < holdingDuration
-      ) {
-        maxProfit = potentialProfit;
-        buyTime = minTime;
-        sellTime = timestamp;
-        sellPrice = safePrice;
-        buyPrice = minPrice;
-        holdingDuration = potentialHoldingDuration;
-      }
+    if (
+      shouldUpdateTrade(
+        potentialProfit,
+        maxProfit,
+        potentialHoldingDuration,
+        holdingDuration,
+      )
+    ) {
+      maxProfit = potentialProfit;
+      buyTime = minTime;
+      sellTime = timestamp;
+      sellPrice = safePrice;
+      buyPrice = minPrice;
+      holdingDuration = potentialHoldingDuration;
     }
 
     if (safePrice.isLessThanOrEqualTo(minPrice)) {

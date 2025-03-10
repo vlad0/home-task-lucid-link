@@ -7,9 +7,9 @@ import { NumericFormat } from 'react-number-format';
 
 type TradeInfoResponse = {
   buyTime: string,
-  buyPrice: number,
+  buyPrice: string,
   sellTime: string,
-  sellPrice: number
+  sellPrice: string
 }
 
 const DataFetcher = () => {
@@ -44,8 +44,12 @@ const DataFetcher = () => {
       return;
     }
 
-    const profitPerShare = new BigNumber(sellPrice - buyPrice)
-    const shares = cash?.dividedBy(buyPrice)
+    const sPrice = new BigNumber(sellPrice)
+    const bPrice = new BigNumber(buyPrice)
+
+    const profitPerShare = sPrice.minus(bPrice)
+
+    const shares = cash?.dividedBy(bPrice)
     const profits = shares?.multipliedBy(profitPerShare)
     setShares(shares)
     setProfit(profits)
@@ -69,7 +73,7 @@ const DataFetcher = () => {
 
       }
       setTradeInfo(result);
-    } catch (ex) {
+    } catch (ex: unknown) {
       console.error('Exception: ', ex)
       setError(ex.message);
     } finally {
