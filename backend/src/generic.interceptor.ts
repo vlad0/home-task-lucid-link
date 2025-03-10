@@ -28,7 +28,7 @@ export class GenericInterceptor implements NestInterceptor {
     });
 
     return next.handle().pipe(
-      timeout(5000),
+      timeout(30_000),
       map((data: unknown) => {
         const duration = Math.floor(performance.now() - start);
 
