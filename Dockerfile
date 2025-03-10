@@ -3,7 +3,15 @@ FROM node:22 AS react-build
 
 WORKDIR /app/frontend
 
+
+ARG COMMIT_SHA
+
+ENV VITE_VERSION=${COMMIT_SHA}
+
 COPY frontend/ ./
+
+RUN rm .env
+
 RUN npm install
 
 RUN npm run build
@@ -20,6 +28,7 @@ RUN npm run build
 
 #Stage 3 - build production
 FROM node:22 AS production
+
 
 WORKDIR /app
 

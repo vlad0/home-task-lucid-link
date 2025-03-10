@@ -91,6 +91,9 @@ const DataFetcher = () => {
         <Typography variant="h4" gutterBottom>
           BTC prices @ MAY-2018
         </Typography>
+        <Typography>
+          App version: {import.meta.env.VITE_VERSION}
+        </Typography>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <DateTimePicker sx={{ m: 1 }}
             value={start}
