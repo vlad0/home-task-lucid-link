@@ -75,7 +75,11 @@ const DataFetcher = () => {
       setTradeInfo(result);
     } catch (ex: unknown) {
       console.error('Exception: ', ex)
-      setError(ex.message);
+      if (ex instanceof Error) {
+        setError(ex.message);
+      } else {
+        setError('Ooops something went wrong');
+      }
     } finally {
       setLoading(false);
     }
