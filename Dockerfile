@@ -28,6 +28,8 @@ COPY --from=react-build /app/frontend/dist ./backend/dist/app
 
 WORKDIR /app/backend
 COPY backend/package.json backend/package-lock.json ./
+RUN mkdir data
+COPY backend/data ./data
 RUN npm install --only=production
 
 EXPOSE 3000
