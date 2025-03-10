@@ -79,13 +79,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T01:00:00Z',
-        buyPrice: 14000,
+        buyPrice: '14000',
         sellTime: '2025-03-01T04:00:00Z',
-        sellPrice: 18000,
-        maxProfit: 4000,
-        maxPrice: 18000,
+        sellPrice: '18000',
+        maxProfit: '4000',
+        maxPrice: '18000',
         maxTime: '2025-03-01T04:00:00Z',
-        minPrice: 12000,
+        minPrice: '12000',
         minTime: '2025-03-01T05:00:00Z',
       });
     });
@@ -97,13 +97,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T02:00:00Z',
-        buyPrice: 9000,
+        buyPrice: '9000',
         sellTime: '2025-03-01T05:00:00Z',
-        sellPrice: 12000,
-        maxProfit: 3000,
-        maxPrice: 12000,
+        sellPrice: '12000',
+        maxProfit: '3000',
+        maxPrice: '12000',
         maxTime: '2025-03-01T05:00:00Z',
-        minPrice: 9000,
+        minPrice: '9000',
         minTime: '2025-03-01T02:00:00Z',
       });
     });
@@ -115,13 +115,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
-        buyPrice: 10000,
+        buyPrice: '10000',
         sellTime: '2025-03-01T01:00:00Z',
-        sellPrice: 13000,
-        maxProfit: 3000,
-        maxPrice: 13000,
+        sellPrice: '13000',
+        maxProfit: '3000',
+        maxPrice: '13000',
         maxTime: '2025-03-01T01:00:00Z',
-        minPrice: 9000,
+        minPrice: '9000',
         minTime: '2025-03-01T02:00:00Z',
       });
     });
@@ -135,13 +135,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T08:00:00Z',
-        buyPrice: 9000,
+        buyPrice: '9000',
         sellTime: '2025-03-01T09:00:00Z',
-        sellPrice: 12000,
-        maxProfit: 3000,
-        maxPrice: 12000,
+        sellPrice: '12000',
+        maxProfit: '3000',
+        maxPrice: '12000',
         maxTime: '2025-03-01T09:00:00Z',
-        minPrice: 9000,
+        minPrice: '9000',
         minTime: '2025-03-01T08:00:00Z',
       });
     });
@@ -155,13 +155,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T05:00:00Z',
-        buyPrice: 9000,
+        buyPrice: '9000',
         sellTime: '2025-03-01T06:00:00Z',
-        sellPrice: 12000,
-        maxProfit: 3000,
-        maxPrice: 12000,
+        sellPrice: '12000',
+        maxProfit: '3000',
+        maxPrice: '12000',
         maxTime: '2025-03-01T09:00:00Z',
-        minPrice: 9000,
+        minPrice: '9000',
         minTime: '2025-03-01T08:00:00Z',
       });
     });
@@ -173,13 +173,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
-        buyPrice: 5000,
+        buyPrice: '5000',
         sellTime: '2025-03-01T05:00:00Z',
-        sellPrice: 10000,
-        maxProfit: 5000,
-        maxPrice: 10000,
+        sellPrice: '10000',
+        maxProfit: '5000',
+        maxPrice: '10000',
         maxTime: '2025-03-01T05:00:00Z',
-        minPrice: 5000,
+        minPrice: '5000',
         minTime: '2025-03-01T00:00:00Z',
       });
     });
@@ -191,13 +191,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T03:00:00Z',
-        buyPrice: 8000,
+        buyPrice: '8000',
         sellTime: '2025-03-01T05:00:00Z',
-        sellPrice: 10000,
-        maxProfit: 2000,
-        maxPrice: 10000,
+        sellPrice: '10000',
+        maxProfit: '2000',
+        maxPrice: '10000',
         maxTime: '2025-03-01T05:00:00Z',
-        minPrice: 8000,
+        minPrice: '8000',
         minTime: '2025-03-01T03:00:00Z',
       });
     });
@@ -209,13 +209,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
-        buyPrice: 8000,
+        buyPrice: '8000',
         sellTime: '2025-03-01T02:00:00Z',
-        sellPrice: 10000,
-        maxProfit: 2000,
-        maxPrice: 10000,
+        sellPrice: '10000',
+        maxProfit: '2000',
+        maxPrice: '10000',
         maxTime: '2025-03-01T02:00:00Z',
-        minPrice: 6000,
+        minPrice: '6000',
         minTime: '2025-03-01T06:00:00Z',
       });
     });
@@ -227,13 +227,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T03:00:00Z',
-        buyPrice: 8000,
+        buyPrice: '8000',
         sellTime: '2025-03-01T10:00:00Z',
-        sellPrice: 12000,
-        maxProfit: 4000,
-        maxPrice: 17000,
+        sellPrice: '12000',
+        maxProfit: '4000',
+        maxPrice: '17000',
         maxTime: '2025-03-01T00:00:00Z',
-        minPrice: 8000,
+        minPrice: '8000',
         minTime: '2025-03-01T03:00:00Z',
       });
     });
@@ -245,13 +245,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-03-01T00:00:00Z',
-        buyPrice: 5000,
+        buyPrice: '5000',
         sellTime: '2025-03-01T04:00:00Z',
-        sellPrice: 9000,
-        maxProfit: 4000,
-        maxPrice: 9000,
+        sellPrice: '9000',
+        maxProfit: '4000',
+        maxPrice: '9000',
         maxTime: '2025-03-01T09:00:00Z',
-        minPrice: 4000,
+        minPrice: '4000',
         minTime: '2025-03-01T10:00:00Z',
       });
     });
@@ -323,13 +323,13 @@ describe('Trade Service', () => {
 
       expect(result).toEqual({
         buyTime: '2025-01-01T03:00:00Z',
-        buyPrice: 7000,
+        buyPrice: '7000',
         sellTime: '2025-01-02T00:00:00Z',
-        sellPrice: 20000,
-        maxProfit: 13000,
-        maxPrice: 20000,
+        sellPrice: '20000',
+        maxProfit: '13000',
+        maxPrice: '20000',
         maxTime: '2025-01-02T00:00:00Z',
-        minPrice: 7000,
+        minPrice: '7000',
         minTime: '2025-01-01T03:00:00Z',
       });
     });
@@ -341,14 +341,14 @@ describe('Trade Service', () => {
       expect(getDailyCandleSpy).toHaveBeenCalledWith('2025-01-03');
 
       expect(result).toEqual({
-        buyTime: '2025-01-03T02:00:00Z',
-        buyPrice: 9000,
+        buyTime: '2025-01-04T02:00:00Z',
+        buyPrice: '9000',
         sellTime: '2025-01-04T04:00:00Z',
-        sellPrice: 19500,
-        maxProfit: 10500,
-        maxPrice: 19500,
+        sellPrice: '19500',
+        maxProfit: '10500',
+        maxPrice: '19500',
         maxTime: '2025-01-04T04:00:00Z',
-        minPrice: 9000,
+        minPrice: '9000',
         minTime: '2025-01-04T02:00:00Z',
       });
     });

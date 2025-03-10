@@ -1,25 +1,23 @@
 import { differenceInMilliseconds } from 'date-fns';
 
 import { UTCDate } from '@date-fns/utc';
+import BigNumber from 'bignumber.js';
 
 export type PricePoint = {
   timestamp: string;
-  price: number;
-};
-export type TradeInfo = {
-  buyTime: string;
-  buyPrice: number;
-  sellTime: string;
-  sellPrice: number;
-  maxProfit: number;
-  maxPrice: number;
-  maxTime: string;
-  minPrice: number;
-  minTime: string;
+  price: number | BigNumber;
 };
 
-export const toTradeInfoArray = (pricePoints: PricePoint[][]) => {
-  return pricePoints.map(findMostProfitableTrade);
+export type TradeInfo = {
+  buyTime: string;
+  buyPrice: string;
+  sellTime: string;
+  sellPrice: string;
+  maxProfit: string;
+  maxPrice: string;
+  maxTime: string;
+  minPrice: string;
+  minTime: string;
 };
 
 export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
@@ -30,12 +28,12 @@ export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
     // so the logic don't accidentally consider profitable trades from min/max
     arr.push({
       timestamp: element.maxTime,
-      price: element.maxPrice,
+      price: new BigNumber(element.maxPrice),
     });
 
     arr.push({
       timestamp: element.minTime,
-      price: element.minPrice,
+      price: new BigNumber(element.minPrice),
     });
   }
 
@@ -44,7 +42,23 @@ export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
   let result: TradeInfo = consolidated;
 
   for (const element of info) {
-    if (element.maxProfit > (result?.maxProfit ?? 0)) {
+    const elementHolding = differenceInMilliseconds(
+      new UTCDate(element.sellTime),
+      new UTCDate(element.buyTime),
+    );
+    const resultHolding = differenceInMilliseconds(
+      new UTCDate(result.sellTime),
+      new UTCDate(result.buyTime),
+    );
+    const maxProfit = new BigNumber(element.maxProfit);
+    const resultMaxProfit = new BigNumber(result?.maxProfit ?? 0);
+
+    if (maxProfit.isGreaterThan(resultMaxProfit)) {
+      result = element;
+    } else if (
+      maxProfit.isEqualTo(resultMaxProfit) &&
+      elementHolding < resultHolding
+    ) {
       result = element;
     }
   }
@@ -53,61 +67,63 @@ export const findMostProfitableTradeByCandles = (info: TradeInfo[]) => {
 };
 
 export const findMostProfitableTrade = (prices: PricePoint[]): TradeInfo => {
-  // TODO: handle when there are no price points
-  let minPrice = prices[0].price;
-  let maxPrice = prices[0].price;
+  // TODO: handle trade info
+  let minPrice = new BigNumber(prices[0].price);
+  let maxPrice = new BigNumber(prices[0].price);
   let maxTime = prices[0].timestamp;
   let minTime = prices[0].timestamp;
-  let maxProfit = 0;
+  let maxProfit = new BigNumber(0);
   let buyTime: string = '';
-  let buyPrice: number = 0;
+  let buyPrice = new BigNumber(0);
   let sellTime: string = '';
-  let sellPrice: number = 0;
+  let sellPrice = new BigNumber(0);
   let holdingDuration: number = 0;
 
   for (let i = 1; i < prices.length; i++) {
     const { timestamp, price } = prices[i];
 
-    const potentialProfit = price - minPrice;
-    if (potentialProfit >= maxProfit) {
+    const safePrice = new BigNumber(price);
+
+    const potentialProfit = safePrice.minus(minPrice);
+    if (potentialProfit.isGreaterThanOrEqualTo(maxProfit)) {
       const potentialHoldingDuration: number = differenceInMilliseconds(
         new UTCDate(timestamp),
         new UTCDate(minTime),
       );
 
       if (
-        potentialProfit !== maxProfit ||
+        !potentialProfit.isEqualTo(maxProfit) ||
         potentialHoldingDuration < holdingDuration
       ) {
         maxProfit = potentialProfit;
         buyTime = minTime;
         sellTime = timestamp;
-        sellPrice = price;
+        sellPrice = safePrice;
         buyPrice = minPrice;
         holdingDuration = potentialHoldingDuration;
       }
     }
 
-    if (price <= minPrice) {
-      minPrice = price;
+    if (safePrice.isLessThanOrEqualTo(minPrice)) {
+      minPrice = safePrice;
       minTime = timestamp;
     }
 
-    if (price >= maxPrice) {
-      maxPrice = price;
+    if (safePrice.isGreaterThanOrEqualTo(maxPrice)) {
+      maxPrice = safePrice;
       maxTime = timestamp;
     }
   }
 
   return {
     buyTime,
-    buyPrice,
+    buyPrice: buyPrice.toString(),
     sellTime,
-    sellPrice,
-    maxProfit,
-    maxPrice,
+    sellPrice: sellPrice.toString(),
+    maxProfit: maxProfit.toString(),
+    maxPrice: maxPrice.toString(),
     maxTime,
-    minPrice,
+    minPrice: minPrice.toString(),
     minTime,
   };
 };

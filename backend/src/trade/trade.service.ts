@@ -7,20 +7,53 @@ import {
   isSameDay,
 } from 'date-fns';
 import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { PriceDataService } from './price-data.service';
+import { UTCDate } from '@date-fns/utc';
+import { NO_PROFITABLE_TRADE } from './constants';
+import { HttpLogger } from '../common/http-logger.service';
+import BigNumber from 'bignumber.js';
+import {
   findMostProfitableTrade,
   findMostProfitableTradeByCandles,
   PricePoint,
   TradeInfo,
 } from '../utils';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { PriceDataService } from './price-data.service';
-import { UTCDate } from '@date-fns/utc';
 
 @Injectable()
 export class TradeService {
-  constructor(private readonly priceDataService: PriceDataService) { }
+  constructor(
+    private readonly priceDataService: PriceDataService,
+    private readonly logger: HttpLogger,
+  ) { }
 
   public async findBestTrade(startDate: Date, endDate: Date) {
+    const result = await this.calculateBestTrade(startDate, endDate);
+
+    const maxProfit = new BigNumber(result.maxProfit);
+
+    if (maxProfit.isEqualTo(0)) {
+      return { status: NO_PROFITABLE_TRADE };
+    }
+
+    const buyPrice = new BigNumber(result.buyPrice);
+    const sellPrice = new BigNumber(result.sellPrice);
+
+    if (result.buyTime > result.sellTime || buyPrice.isGreaterThan(sellPrice)) {
+      this.logger.error('Result contains bad response', result);
+
+      throw new InternalServerErrorException(
+        'Server could NOT process this error successfully',
+      );
+    }
+
+    return result;
+  }
+
+  private async calculateBestTrade(startDate: Date, endDate: Date) {
     const start = new UTCDate(startDate);
     const end = new UTCDate(endDate);
 
@@ -50,13 +83,7 @@ export class TradeService {
       tradeInfos.push(tradeInfo);
     }
 
-    const result = findMostProfitableTradeByCandles(tradeInfos);
-
-    if (result.maxProfit === 0) {
-      return { status: 'NO_PROFITABLE_TRADE' };
-    }
-
-    return result;
+    return findMostProfitableTradeByCandles(tradeInfos);
   }
 
   private async loadPricePoints(
