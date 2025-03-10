@@ -97,10 +97,20 @@ export class TradeService {
     const key = format(date, 'yyyy-MM-dd');
     const pricePoints = await this.priceDataService.fetch(key);
 
-    return pricePoints.filter((p) => {
+    const result: PricePoint[] = [];
+    for (const p of pricePoints) {
       const isAfterA = isAfter(addSeconds(new UTCDate(p.timestamp), 1), start);
       const isBeforeA = isBefore(new UTCDate(p.timestamp), addSeconds(end, 1));
-      return isAfterA && isBeforeA;
-    });
+
+      if (!isBeforeA) {
+        break;
+      }
+
+      if (isAfterA && isBeforeA) {
+        result.push(p);
+      }
+    }
+
+    return result;
   }
 }
