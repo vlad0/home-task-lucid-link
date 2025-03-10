@@ -1,10 +1,12 @@
 import {
   addSeconds,
   eachDayOfInterval,
+  endOfDay,
   format,
   isAfter,
   isBefore,
   isSameDay,
+  startOfDay,
 } from 'date-fns';
 import {
   BadRequestException,
@@ -69,32 +71,42 @@ export class TradeService {
     });
 
     const tradeInfos: TradeInfo[] = [];
-    for (const date of dates) {
-      if (isSameDay(date, start) || isSameDay(date, end)) {
-        const pricePoints = await this.loadPricePoints(date, start, end);
-        const tradeInfo = findMostProfitableTrade(pricePoints);
+
+    if (dates.length === 1) {
+      tradeInfos.push(await this.calculatePricePoints(start, end));
+    } else {
+      const first = await this.calculatePricePoints(start, endOfDay(start));
+      tradeInfos.push(first);
+
+      const last = await this.calculatePricePoints(startOfDay(end), end);
+
+      const middleDates = dates.slice(1, -1);
+      for (const date of middleDates) {
+        const key = format(date, 'yyyy-MM-dd');
+
+        const tradeInfo = await this.priceDataService.getDailyCandle(key);
         tradeInfos.push(tradeInfo);
-        continue;
       }
 
-      const key = format(date, 'yyyy-MM-dd');
-
-      const tradeInfo = await this.priceDataService.getDailyCandle(key);
-      tradeInfos.push(tradeInfo);
+      tradeInfos.push(last);
     }
 
     return findMostProfitableTradeByCandles(tradeInfos);
   }
 
+  private async calculatePricePoints(start: Date, end: Date) {
+    const pricePoints = await this.loadPricePoints(start, end);
+    return findMostProfitableTrade(pricePoints);
+  }
+
   private async loadPricePoints(
-    date: Date,
     startDate: Date,
     endDate: Date,
   ): Promise<PricePoint[]> {
     const start = new UTCDate(startDate);
     const end = new UTCDate(endDate);
 
-    const key = format(date, 'yyyy-MM-dd');
+    const key = format(startDate, 'yyyy-MM-dd');
     const pricePoints = await this.priceDataService.fetch(key);
 
     const result: PricePoint[] = [];
