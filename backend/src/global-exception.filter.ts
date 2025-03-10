@@ -8,8 +8,8 @@ import {
 import { Response, Request } from 'express';
 
 @Catch()
-export class GenericExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GenericExceptionFilter.name);
+export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

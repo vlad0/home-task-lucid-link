@@ -10,8 +10,8 @@ import { catchError, map, Observable, timeout, TimeoutError } from 'rxjs';
 import { Request } from 'express';
 
 @Injectable()
-export class GenericInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(GenericInterceptor.name);
+export class GlobalInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(GlobalInterceptor.name);
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
