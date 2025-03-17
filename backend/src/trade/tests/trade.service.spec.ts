@@ -102,7 +102,7 @@ describe('Trade Service', () => {
         sellPrice: '12000',
         maxProfit: '3000',
         maxPrice: '12000',
-        maxTime: '2025-03-01T05:00:00Z',
+        maxTime: '2025-03-01T01:00:00Z',
         minPrice: '9000',
         minTime: '2025-03-01T02:00:00Z',
       });
@@ -140,7 +140,7 @@ describe('Trade Service', () => {
         sellPrice: '12000',
         maxProfit: '3000',
         maxPrice: '12000',
-        maxTime: '2025-03-01T09:00:00Z',
+        maxTime: '2025-03-01T02:00:00Z',
         minPrice: '9000',
         minTime: '2025-03-01T08:00:00Z',
       });
@@ -160,7 +160,7 @@ describe('Trade Service', () => {
         sellPrice: '12000',
         maxProfit: '3000',
         maxPrice: '12000',
-        maxTime: '2025-03-01T09:00:00Z',
+        maxTime: '2025-03-01T02:00:00Z',
         minPrice: '9000',
         minTime: '2025-03-01T08:00:00Z',
       });
@@ -196,7 +196,7 @@ describe('Trade Service', () => {
         sellPrice: '10000',
         maxProfit: '2000',
         maxPrice: '10000',
-        maxTime: '2025-03-01T05:00:00Z',
+        maxTime: '2025-03-01T00:00:00Z',
         minPrice: '8000',
         minTime: '2025-03-01T03:00:00Z',
       });
@@ -250,7 +250,7 @@ describe('Trade Service', () => {
         sellPrice: '9000',
         maxProfit: '4000',
         maxPrice: '9000',
-        maxTime: '2025-03-01T09:00:00Z',
+        maxTime: '2025-03-01T04:00:00Z',
         minPrice: '4000',
         minTime: '2025-03-01T10:00:00Z',
       });

@@ -6,10 +6,16 @@ import {
 } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { findMostProfitableTrade, TradeInfo } from '../utils';
+import {
+  findMostProfitableTrade,
+  findMostProfitableTradeByCandles,
+  PricePoint,
+  TradeInfo,
+} from '../utils';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { PriceDataRepository } from './price-data.repository';
 import { HttpLogger } from '../common/http-logger.service';
+import { UTCDate } from '@date-fns/utc';
 
 @Injectable()
 export class PriceDataService implements OnApplicationBootstrap {
@@ -58,6 +64,8 @@ export class PriceDataService implements OnApplicationBootstrap {
       for (const file of files) {
         try {
           const fileName = path.basename(file, path.extname(file));
+          await this.cacheHourlyCandles(fileName);
+
           await this.getDailyCandle(fileName);
         } catch (err) {
           console.error(`Error parsing JSON in ${file}:`, err);
@@ -79,6 +87,55 @@ export class PriceDataService implements OnApplicationBootstrap {
     }
   }
 
+  public async cacheHourlyCandles(date: string) {
+    const jsonData = await this.priceDataRepository.fetch(date);
+
+    let batch: PricePoint[] = [];
+    let lastHour = 0;
+    for (const element of jsonData) {
+      const hour = new UTCDate(element.timestamp).getUTCHours();
+      if (hour === lastHour) {
+        batch.push(element);
+      } else {
+        const candle = findMostProfitableTrade(batch);
+
+        const key = `${date}H${lastHour}`;
+        this.logger.log(`Updating cache for ${key}`);
+        await this.cacheManager.set(key, candle);
+
+        lastHour = hour;
+        batch = [element];
+      }
+    }
+
+    // handle last batch
+    const candle = findMostProfitableTrade(batch);
+
+    const key = `${date}H${lastHour}`;
+    this.logger.log(`Updating cache for ${key}`);
+    await this.cacheManager.set(key, candle);
+  }
+
+  public async getHourlyCandle(date: string, hour: number) {
+    const key = `${date}H${hour}`;
+    const cache = await this.cacheManager.get<TradeInfo>(key);
+
+    if (cache) {
+      this.logger.log(`Serving from cache for ${key}`);
+      return cache;
+    }
+
+    await this.cacheHourlyCandles(date);
+
+    const result = await this.cacheManager.get<TradeInfo>(key);
+
+    if (!result) {
+      throw new Error(`No hourly candle for ${key}`);
+    }
+
+    return result;
+  }
+
   public async getDailyCandle(date: string): Promise<TradeInfo> {
     const cache = await this.cacheManager.get<TradeInfo>(date);
 
@@ -87,8 +144,20 @@ export class PriceDataService implements OnApplicationBootstrap {
       return cache;
     }
 
-    const jsonData = await this.priceDataRepository.fetch(date);
-    const dailyCandle = findMostProfitableTrade(jsonData);
+    const candles: TradeInfo[] = [];
+    for (let index = 0; index < 24; index++) {
+      const hourlyCandle = await this.cacheManager.get<TradeInfo>(
+        `${date}H${index}`,
+      );
+      if (hourlyCandle === null) {
+        this.logger.log(`no info for key ${date}H${index}`);
+        continue;
+      }
+
+      candles.push(hourlyCandle as unknown as TradeInfo);
+    }
+
+    const dailyCandle = findMostProfitableTradeByCandles(candles);
 
     this.logger.log(`Updating cache for ${date}`);
     await this.cacheManager.set(date, dailyCandle);

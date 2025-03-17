@@ -1,12 +1,14 @@
 import {
   addSeconds,
   eachDayOfInterval,
+  eachHourOfInterval,
   endOfDay,
+  endOfHour,
   format,
   isAfter,
   isBefore,
-  isSameDay,
   startOfDay,
+  startOfHour,
 } from 'date-fns';
 import {
   BadRequestException,
@@ -73,12 +75,12 @@ export class TradeService {
     const tradeInfos: TradeInfo[] = [];
 
     if (dates.length === 1) {
-      tradeInfos.push(await this.calculatePricePoints(start, end));
+      tradeInfos.push(await this.calculateHourlyCandles(start, end));
     } else {
-      const first = await this.calculatePricePoints(start, endOfDay(start));
+      const first = await this.calculateHourlyCandles(start, endOfDay(start));
       tradeInfos.push(first);
 
-      const last = await this.calculatePricePoints(startOfDay(end), end);
+      const last = await this.calculateHourlyCandles(startOfDay(end), end);
 
       const middleDates = dates.slice(1, -1);
       for (const date of middleDates) {
@@ -94,11 +96,52 @@ export class TradeService {
     return findMostProfitableTradeByCandles(tradeInfos);
   }
 
+  private async calculateHourlyCandles(startDate: Date, endDate: Date) {
+    const start = new UTCDate(startDate);
+    const end = new UTCDate(endDate);
+
+    if (end < start) {
+      throw new BadRequestException(
+        `End date: ${end.toISOString()} cannot be before ${start.toISOString()} date`,
+      );
+    }
+
+    const hours = eachHourOfInterval({
+      start,
+      end,
+    });
+
+    const tradeInfos: TradeInfo[] = [];
+
+    if (hours.length === 1) {
+      tradeInfos.push(await this.calculatePricePoints(start, end));
+    } else {
+      const first = await this.calculatePricePoints(start, endOfHour(start));
+      tradeInfos.push(first);
+
+      const last = await this.calculatePricePoints(startOfHour(end), end);
+
+      const middleHours = hours.slice(1, -1);
+      for (const hour of middleHours) {
+        const key = format(hour, 'yyyy-MM-dd');
+
+        const tradeInfo = await this.priceDataService.getHourlyCandle(
+          key,
+          hour.getUTCHours(),
+        );
+        tradeInfos.push(tradeInfo);
+      }
+
+      tradeInfos.push(last);
+    }
+
+    return findMostProfitableTradeByCandles(tradeInfos);
+  }
+
   private async calculatePricePoints(start: Date, end: Date) {
     const pricePoints = await this.loadPricePoints(start, end);
     return findMostProfitableTrade(pricePoints);
   }
-
   private async loadPricePoints(
     startDate: Date,
     endDate: Date,

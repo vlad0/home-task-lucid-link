@@ -1,8 +1,14 @@
-import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { Controller, Get, HttpStatus, Inject, Query } from '@nestjs/common';
 
 @Controller()
 export class AppController {
-  constructor() { }
+  constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) { }
+
+  @Get('cache')
+  cache(@Query('key') key: string) {
+    return this.cacheManager.get(key);
+  }
 
   @Get('healthcheck')
   healtcheck() {

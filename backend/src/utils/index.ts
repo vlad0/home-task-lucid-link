@@ -123,7 +123,7 @@ export const findMostProfitableTrade = (prices: PricePoint[]): TradeInfo => {
       minTime = timestamp;
     }
 
-    if (safePrice.isGreaterThanOrEqualTo(maxPrice)) {
+    if (safePrice.isGreaterThan(maxPrice)) {
       maxPrice = safePrice;
       maxTime = timestamp;
     }

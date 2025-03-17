@@ -21,11 +21,11 @@ export class TradeController {
   @SerializeOptions({
     strategy: 'excludeAll',
   })
-  getTradeInfo(
+  async getTradeInfo(
     @Query('start', new PraseUtcDatePipe()) start: Date,
     @Query('end', new PraseUtcDatePipe()) end: Date,
   ) {
-    const trade = this.tradeService.findBestTrade(start, end);
+    const trade = await this.tradeService.findBestTrade(start, end);
     return plainToInstance(TradeResponseDto, trade);
   }
 }

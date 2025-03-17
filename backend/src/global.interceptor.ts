@@ -8,11 +8,11 @@ import {
 } from '@nestjs/common';
 import { catchError, map, Observable, timeout, TimeoutError } from 'rxjs';
 import { Request } from 'express';
+import { HttpLogger } from './common/http-logger.service';
 
 @Injectable()
 export class GlobalInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(GlobalInterceptor.name);
-
+  constructor(private readonly logger: HttpLogger) { }
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
 
